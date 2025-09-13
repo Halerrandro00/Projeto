@@ -8,7 +8,7 @@ const itemSchema = new mongoose.Schema({
 }, { _id: false });
 
 const cartSchema = new mongoose.Schema({
-  userId: { type: String, required: true, unique: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
   items: [itemSchema],
   updatedAt: { type: Date, default: Date.now }
 });

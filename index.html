@@ -4,28 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mini Loja NoSQL</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <h1>Mini Loja</h1>
-        <div class="cart-summary">
-            <h2>Meu Carrinho (<span id="cart-count">0</span>)</h2>
-            <button id="export-cart-btn">Exportar Carrinho (JSON)</button>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/products">Mini Loja NoSQL</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/products">Produtos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/cart">
+                            Carrinho (<span id="cart-count">0</span>)
+                        </a>
+                    </li>
+                    <span id="nav-auth-links"></span>
+                </ul>
+            </div>
         </div>
-    </header>
+    </nav>
 
-    <main>
-        <section id="products-section">
-            <h2>Produtos</h2>
-            <div id="products-list" class="grid-container"></div>
-        </section>
-        <aside id="cart-section">
-            <ul id="cart-items-list"></ul>
-            <p>Total: R$ <span id="cart-total">0.00</span></p>
-        </aside>
+    <main class="container mt-4">
+        <h1 class="mb-4">Produtos Disponíveis</h1>
+        <div id="products-list" class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+            <!-- Os cards de produtos serão inseridos aqui pelo JavaScript -->
+        </div>
     </main>
 
+    <script src="auth-nav.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

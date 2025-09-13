@@ -1,52 +1,37 @@
 document.addEventListener('DOMContentLoaded', () => {
     const productsList = document.getElementById('products-list');
-    const cartItemsList = document.getElementById('cart-items-list');
-    const cartCount = document.getElementById('cart-count');
-    const cartTotal = document.getElementById('cart-total');
-    const exportCartBtn = document.getElementById('export-cart-btn');
-
-    // Simples ID de usuário para este exemplo. Em uma aplicação real, isso viria de um sistema de login.
-    const USER_ID = 'user123';
+    const cartCountNav = document.getElementById('cart-count');
 
     // --- FUNÇÕES DE RENDERIZAÇÃO ---
 
-    const renderProducts = (products) => {
+    const renderProducts = (products) => { // Altera a renderização para usar cards do Bootstrap
         productsList.innerHTML = '';
         products.forEach(product => {
-            const productCard = document.createElement('div');
-            productCard.className = 'product-card';
-            productCard.innerHTML = `
-                <img src="${product.imageUrl || 'https://via.placeholder.com/150'}" alt="${product.name}">
-                <h3>${product.name}</h3>
-                <p>R$ ${product.price.toFixed(2)}</p>
-                <button class="add-to-cart-btn" data-product-id="${product._id}">Adicionar ao Carrinho</button>
+            const productCol = document.createElement('div');
+            productCol.className = 'col';
+            productCol.innerHTML = `
+                <div class="card h-100">
+                    <img src="${product.imageUrl || 'https://via.placeholder.com/200x150'}" class="card-img-top" alt="${product.name}">
+                    <div class="card-body">
+                        <h5 class="card-title">${product.name}</h5>
+                        <p class="card-text">${product.description || ''}</p>
+                        <p class="card-text fw-bold">R$ ${product.price.toFixed(2)}</p>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn btn-primary w-100 add-to-cart-btn" data-product-id="${product._id}">Adicionar ao Carrinho</button>
+                    </div>
+                </div>
             `;
-            productsList.appendChild(productCard);
+            productsList.appendChild(productCol);
         });
     };
 
-    const renderCart = (cart) => {
-        cartItemsList.innerHTML = '';
-        let total = 0;
+    const updateCartCount = (cart) => { // Apenas atualiza o contador no menu
         let count = 0;
-
         if (cart && cart.items) {
-            cart.items.forEach(item => {
-                const li = document.createElement('li');
-                li.className = 'cart-item';
-                li.innerHTML = `
-                    <span>${item.name} (x${item.quantity})</span>
-                    <span>R$ ${(item.price * item.quantity).toFixed(2)}</span>
-                    <button class="remove-from-cart-btn" data-product-id="${item.productId}">Remover</button>
-                `;
-                cartItemsList.appendChild(li);
-                total += item.price * item.quantity;
-                count += item.quantity;
-            });
+            count = cart.items.reduce((sum, item) => sum + item.quantity, 0);
         }
-
-        cartCount.textContent = count;
-        cartTotal.textContent = total.toFixed(2);
+        cartCountNav.textContent = count;
     };
 
     // --- FUNÇÕES DA API (FETCH) ---
@@ -63,9 +48,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const fetchCart = async () => {
         try {
-            const response = await fetch(`/api/cart/${USER_ID}`);
+            const token = localStorage.getItem('token');
+            if (!token) return; // Não busca o carrinho se não houver token
+
+            const response = await fetch(`/api/cart`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
             const cart = await response.json();
-            renderCart(cart);
+            updateCartCount(cart);
         } catch (error) {
             console.error('Erro ao buscar carrinho:', error);
         }
@@ -73,25 +63,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const addToCart = async (productId) => {
         try {
-            await fetch(`/api/cart/${USER_ID}/items`, {
+            const token = localStorage.getItem('token');
+            if (!token) return alert('Por favor, faça login para adicionar itens ao carrinho.');
+
+            await fetch(`/api/cart/items`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify({ productId: productId, quantity: 1 })
             });
             fetchCart(); // Atualiza a exibição do carrinho
         } catch (error) {
             console.error('Erro ao adicionar ao carrinho:', error);
-        }
-    };
-
-    const removeFromCart = async (productId) => {
-        try {
-            await fetch(`/api/cart/${USER_ID}/items/${productId}`, {
-                method: 'DELETE'
-            });
-            fetchCart(); // Atualiza a exibição do carrinho
-        } catch (error) {
-            console.error('Erro ao remover do carrinho:', error);
         }
     };
 
@@ -102,18 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const productId = e.target.dataset.productId;
             addToCart(productId);
         }
-    });
-
-    cartItemsList.addEventListener('click', (e) => {
-        if (e.target.classList.contains('remove-from-cart-btn')) {
-            const productId = e.target.dataset.productId;
-            removeFromCart(productId);
-        }
-    });
-
-    exportCartBtn.addEventListener('click', () => {
-        // A rota da API já força o download, então podemos apenas redirecionar.
-        window.location.href = `/api/cart/${USER_ID}/export`;
     });
 
     // --- INICIALIZAÇÃO ---
