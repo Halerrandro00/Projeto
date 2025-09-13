@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Loja NoSQL</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Mini Loja</h1>
+        <div class="cart-summary">
+            <h2>Meu Carrinho (<span id="cart-count">0</span>)</h2>
+            <button id="export-cart-btn">Exportar Carrinho (JSON)</button>
+        </div>
+    </header>
+
+    <main>
+        <section id="products-section">
+            <h2>Produtos</h2>
+            <div id="products-list" class="grid-container"></div>
+        </section>
+        <aside id="cart-section">
+            <ul id="cart-items-list"></ul>
+            <p>Total: R$ <span id="cart-total">0.00</span></p>
+        </aside>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
