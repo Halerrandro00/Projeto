@@ -44,6 +44,16 @@ app.get('/cart', (req, res) => {
   res.sendFile(path.join(__dirname, 'cart.html'));
 });
 
+// Rota para a página de checkout
+app.get('/checkout', (req, res) => {
+  res.sendFile(path.join(__dirname, 'checkout.html'));
+});
+
+// Rota para a página de sucesso do pedido
+app.get('/order-success', (req, res) => {
+  res.sendFile(path.join(__dirname, 'order-success.html'));
+});
+
 // Rota para a página de perfil
 app.get('/profile', (req, res) => {
   res.sendFile(path.join(__dirname, 'profile.html'));
@@ -57,6 +67,16 @@ app.get('/admin', (req, res) => {
 // Rota para a página de dashboard
 app.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, 'dashboard.html'));
+});
+
+// Rota para a página de gerenciamento de usuários (Admin)
+app.get('/users', (req, res) => {
+  res.sendFile(path.join(__dirname, 'users.html'));
+});
+
+// Rota para a página de visualização de todos os pedidos (Admin)
+app.get('/orders', (req, res) => {
+  res.sendFile(path.join(__dirname, 'orders.html'));
 });
 
 // Rota para a página de login

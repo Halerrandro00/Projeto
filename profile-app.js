@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const passwordChangeForm = document.getElementById('password-change-form');
     const passwordSuccessMessage = document.getElementById('password-success-message');
     const passwordErrorMessage = document.getElementById('password-error-message');
+    const orderHistoryContainer = document.getElementById('order-history-container');
 
     const token = localStorage.getItem('token');
 
@@ -17,6 +18,75 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = '/login';
         return;
     }
+
+    const renderOrderHistory = (orders) => {
+        orderHistoryContainer.innerHTML = '';
+
+        if (!orders || orders.length === 0) {
+            orderHistoryContainer.innerHTML = '<p class="text-muted">Você ainda não fez nenhum pedido.</p>';
+            return;
+        }
+
+        const accordion = document.createElement('div');
+        accordion.className = 'accordion';
+        accordion.id = 'ordersAccordion';
+
+        orders.forEach((order, index) => {
+            const orderDate = new Date(order.createdAt).toLocaleDateString('pt-BR');
+            const orderTotal = order.totalPrice.toFixed(2);
+
+            // Gera o HTML para a lista de itens dentro do pedido
+            const itemsHtml = order.orderItems.map(item => `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <img src="${item.imageUrl}" alt="${item.name}" class="img-fluid rounded me-2" style="width: 40px;">
+                        ${item.name} <span class="text-muted"> (Qtd: ${item.quantity})</span>
+                    </div>
+                    <span class="fw-bold">R$ ${(item.price * item.quantity).toFixed(2)}</span>
+                </li>
+            `).join('');
+
+            const accordionItem = document.createElement('div');
+            accordionItem.className = 'accordion-item';
+            accordionItem.innerHTML = `
+                <h2 class="accordion-header" id="heading${index}">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${index}" aria-expanded="false" aria-controls="collapse${index}">
+                        <div class="d-flex justify-content-between w-100 pe-3">
+                            <span>Pedido #${order._id.substring(0, 8)}...</span>
+                            <span class="text-muted">${orderDate}</span>
+                            <span class="fw-bold">R$ ${orderTotal}</span>
+                        </div>
+                    </button>
+                </h2>
+                <div id="collapse${index}" class="accordion-collapse collapse" aria-labelledby="heading${index}" data-bs-parent="#ordersAccordion">
+                    <div class="accordion-body">
+                        <strong>Endereço de Entrega:</strong>
+                        <p class="mb-2">${order.shippingAddress.address}, ${order.shippingAddress.city} - ${order.shippingAddress.postalCode}</p>
+                        <strong>Itens do Pedido:</strong>
+                        <ul class="list-group mt-2">
+                            ${itemsHtml}
+                        </ul>
+                    </div>
+                </div>
+            `;
+            accordion.appendChild(accordionItem);
+        });
+
+        orderHistoryContainer.appendChild(accordion);
+    };
+
+    const fetchOrderHistory = async () => {
+        try {
+            const res = await fetch('/api/orders/myorders', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error('Falha ao buscar histórico de pedidos.');
+            const orders = await res.json();
+            renderOrderHistory(orders);
+        } catch (error) {
+            orderHistoryContainer.innerHTML = `<div class="alert alert-warning">${error.message}</div>`;
+        }
+    };
 
     const fetchProfileData = async () => {
         try {
@@ -44,6 +114,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const cart = await cartRes.json();
             const count = cart.items ? cart.items.reduce((sum, item) => sum + item.quantity, 0) : 0;
             cartCountNav.textContent = count;
+
+            // Busca o histórico de pedidos
+            fetchOrderHistory();
 
         } catch (error) {
             console.error('Erro:', error);

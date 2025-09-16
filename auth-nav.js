@@ -3,22 +3,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem('token');
     
     const setupNav = async () => {
-        if (token) {
-            try {
-                const res = await fetch('/api/profile', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (!res.ok) {
-                    localStorage.removeItem('token');
-                    renderLoggedOutLinks();
-                    return;
-                }
-                const user = await res.json();
-                renderLoggedInLinks(user.isAdmin);
-            } catch (error) {
-                renderLoggedOutLinks();
+        if (!token) {
+            renderLoggedOutLinks();
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/profile', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) {
+                throw new Error('Token inválido ou sessão expirada.');
             }
-        } else {
+            const user = await res.json();
+            renderLoggedInLinks(user.isAdmin);
+        } catch (error) {
+            console.error('Falha ao verificar autenticação:', error);
+            localStorage.removeItem('token');
             renderLoggedOutLinks();
         }
     };
@@ -32,6 +33,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="adminMenu">
                     <li><a class="dropdown-item" href="/dashboard">Dashboard</a></li>
                     <li><a class="dropdown-item" href="/admin">Gerenciar Produtos</a></li>
+                    <li><a class="dropdown-item" href="/users">Gerenciar Usuários</a></li>
+                    <li><a class="dropdown-item" href="/orders">Ver Todos os Pedidos</a></li>
                 </ul>
             </li>
         ` : '';

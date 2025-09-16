@@ -6,6 +6,7 @@ const bcrypt = require('bcryptjs');
 const Product = require('./product');
 const Cart = require('./cart');
 const User = require('./user');
+const Order = require('./order');
 
 // --- ROTA DE AUTENTICAÇÃO ---
 
@@ -151,6 +152,60 @@ router.get('/admin/stats', protect, admin, async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ message: 'Erro ao buscar estatísticas' });
+    }
+});
+
+// --- ROTAS DE ADMIN - GERENCIAMENTO DE USUÁRIOS ---
+
+// GET /api/users - Listar todos os usuários (Admin)
+router.get('/users', protect, admin, async (req, res) => {
+    try {
+        const users = await User.find({}).select('-password');
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ message: 'Erro no servidor' });
+    }
+});
+
+// DELETE /api/users/:id - Deletar um usuário (Admin)
+router.delete('/users/:id', protect, admin, async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+
+        if (user) {
+            // Prevenir que o admin se auto-delete
+            if (user._id.equals(req.user._id)) {
+                return res.status(400).json({ message: 'Não pode deletar o próprio usuário administrador.' });
+            }
+            await User.deleteOne({ _id: req.params.id });
+            res.json({ message: 'Usuário removido' });
+        } else {
+            res.status(404).json({ message: 'Usuário não encontrado' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Erro no servidor' });
+    }
+});
+
+// PUT /api/users/:id - Atualizar um usuário (Admin)
+router.put('/users/:id', protect, admin, async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+
+        if (user) {
+            user.isAdmin = req.body.isAdmin;
+            const updatedUser = await user.save();
+            res.json({
+                _id: updatedUser._id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                isAdmin: updatedUser.isAdmin,
+            });
+        } else {
+            res.status(404).json({ message: 'Usuário não encontrado' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Erro no servidor' });
     }
 });
 
@@ -310,6 +365,35 @@ router.post('/cart/items', protect, async (req, res) => {
   }
 });
 
+// UPDATE: Atualizar a quantidade de um item no carrinho
+router.put('/cart/items/:productId', protect, async (req, res) => {
+    const { productId } = req.params;
+    const { quantity } = req.body;
+    const userId = req.user._id;
+
+    const newQuantity = parseInt(quantity);
+    if (isNaN(newQuantity) || newQuantity <= 0) {
+        return res.status(400).json({ message: 'A quantidade deve ser um número positivo.' });
+    }
+
+    try {
+        const cart = await Cart.findOne({ userId });
+        if (!cart) return res.status(404).json({ message: "Carrinho não encontrado" });
+
+        const itemIndex = cart.items.findIndex(item => item.productId.toString() === productId);
+
+        if (itemIndex > -1) {
+            cart.items[itemIndex].quantity = newQuantity;
+            const updatedCart = await cart.save();
+            return res.status(200).json(updatedCart);
+        } else {
+            return res.status(404).json({ message: "Item não encontrado no carrinho" });
+        }
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
 // DELETE: Remover um item do carrinho
 router.delete('/cart/items/:productId', protect, async (req, res) => {
     const { productId } = req.params;
@@ -334,5 +418,67 @@ router.get('/cart/export', protect, async (req, res) => {
     res.header('Content-Disposition', `attachment; filename="cart-${req.user._id}.json"`);
     res.json(cart);
 });
+
+// --- ROTAS DE PEDIDOS ---
+
+// CREATE: Criar um novo pedido a partir do carrinho
+router.post('/orders', protect, async (req, res) => {
+    try {
+        const { shippingAddress, paymentMethod } = req.body;
+
+        const cart = await Cart.findOne({ userId: req.user._id });
+
+        if (!cart || cart.items.length === 0) {
+            return res.status(400).json({ message: 'Seu carrinho está vazio.' });
+        }
+
+        // Calcula o preço total
+        const totalPrice = cart.items.reduce((acc, item) => acc + item.quantity * item.price, 0);
+
+        const order = new Order({
+            userId: req.user._id,
+            orderItems: cart.items,
+            shippingAddress,
+            paymentMethod,
+            totalPrice,
+            isPaid: true, // Simulação
+            paidAt: Date.now(), // Simulação
+        });
+
+        const createdOrder = await order.save();
+
+        // Limpa o carrinho do usuário após o pedido ser criado
+        await Cart.deleteOne({ userId: req.user._id });
+
+        res.status(201).json(createdOrder);
+
+    } catch (error) {
+        console.error('Erro ao criar pedido:', error);
+        res.status(500).json({ message: 'Erro no servidor ao criar pedido.' });
+    }
+});
+
+// READ: Obter os pedidos do usuário logado
+router.get('/orders/myorders', protect, async (req, res) => {
+    try {
+        const orders = await Order.find({ userId: req.user._id }).sort({ createdAt: -1 });
+        res.json(orders);
+    } catch (error) {
+        console.error('Erro ao buscar pedidos do usuário:', error);
+        res.status(500).json({ message: 'Erro no servidor ao buscar pedidos.' });
+    }
+});
+
+// READ: Obter todos os pedidos (Admin)
+router.get('/orders', protect, admin, async (req, res) => {
+    try {
+        const orders = await Order.find({}).populate('userId', 'name email').sort({ createdAt: -1 });
+        res.json(orders);
+    } catch (error) {
+        console.error('Erro ao buscar todos os pedidos:', error);
+        res.status(500).json({ message: 'Erro no servidor ao buscar pedidos.' });
+    }
+});
+
 
 module.exports = router;
