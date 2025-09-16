@@ -95,8 +95,10 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     cartContainer.addEventListener('click', (e) => {
-        if (e.target.classList.contains('remove-from-cart-btn')) {
-            const productId = e.target.dataset.productId;
+        // Use .closest() para garantir que o clique funcione no botão ou no ícone
+        const removeBtn = e.target.closest('.remove-from-cart-btn');
+        if (removeBtn) {
+            const productId = removeBtn.dataset.productId;
             removeFromCart(productId);
         }
     });

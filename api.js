@@ -132,18 +132,53 @@ router.put('/profile/password', protect, async (req, res) => {
     }
 });
 
+// --- ROTA DE ADMIN STATS ---
+router.get('/admin/stats', protect, admin, async (req, res) => {
+    try {
+        const userCount = await User.countDocuments();
+        const productCount = await Product.countDocuments();
+        // Conta carrinhos que têm pelo menos um item
+        const activeCartsCount = await Cart.countDocuments({ 'items.0': { $exists: true } });
+
+        // Pega os 5 produtos mais caros para o gráfico
+        const topProductsByPrice = await Product.find().sort({ price: -1 }).limit(5).select('name price');
+
+        res.json({
+            userCount,
+            productCount,
+            activeCartsCount,
+            topProductsByPrice,
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Erro ao buscar estatísticas' });
+    }
+});
+
 // --- ROTAS DE PRODUTOS ---
 
 // READ: Listar todos os produtos
 router.get('/products', async (req, res) => {
   const pageSize = parseInt(req.query.limit) || 8; // Produtos por página
   const page = parseInt(req.query.page) || 1;      // Página atual
+  const keyword = req.query.keyword ? {
+    name: {
+      $regex: req.query.keyword,
+      $options: 'i', // case-insensitive
+    },
+  } : {};
+  const sort = {};
+  if (req.query.sort === 'price_asc') {
+    sort.price = 1;
+  } else if (req.query.sort === 'price_desc') {
+    sort.price = -1;
+  }
 
   try {
-    const count = await Product.countDocuments();
-    const products = await Product.find()
+    const count = await Product.countDocuments({ ...keyword });
+    const products = await Product.find({ ...keyword })
       .limit(pageSize)
-      .skip(pageSize * (page - 1));
+      .skip(pageSize * (page - 1))
+      .sort(sort);
 
     res.json({
       products,

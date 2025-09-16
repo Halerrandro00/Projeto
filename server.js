@@ -36,7 +36,7 @@ app.get('/products', (req, res) => {
 
 // Rota raiz redireciona para o login
 app.get('/', (req, res) => {
-  res.redirect('/login');
+  res.redirect('/products');
 });
 
 // Rota para a página do carrinho
@@ -52,6 +52,11 @@ app.get('/profile', (req, res) => {
 // Rota para a página de admin
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
+// Rota para a página de dashboard
+app.get('/dashboard', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dashboard.html'));
 });
 
 // Rota para a página de login

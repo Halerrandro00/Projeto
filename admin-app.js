@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const productModalLabel = document.getElementById('productModalLabel');
     const adminProductsList = document.getElementById('admin-products-list');
     const adminPaginationContainer = document.getElementById('admin-pagination');
-.    const adminSearchForm = document.getElementById('admin-search-form');
+    const adminSearchForm = document.getElementById('admin-search-form');
     const adminSearchBox = document.getElementById('admin-search-box');
 
     let currentAdminPage = 1;
@@ -87,14 +87,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- FUNÇÕES DA API ---
 
-    const fetchProducts = async (page = 1) => {
     const fetchProducts = async (page = 1, keyword = '') => {
         try {
             currentAdminPage = page;
             currentAdminKeyword = keyword;
 
             // Usamos um limite maior para a página de admin
-            const res = await fetch(`/api/products?page=${page}&limit=10`);
             const res = await fetch(`/api/products?page=${page}&limit=10&keyword=${keyword}`);
             if (!res.ok) throw new Error('Falha ao buscar produtos');
             const data = await res.json();
@@ -127,7 +125,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!res.ok) throw new Error(await res.json().then(d => d.message));
 
             productModal.hide();
-            fetchProducts();
             fetchProducts(currentAdminPage, currentAdminKeyword); // Recarrega a página/busca atual
         } catch (error) {
             alert(`Erro: ${error.message}`);
@@ -143,7 +140,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!res.ok) throw new Error(await res.json().then(d => d.message));
-            fetchProducts();
             fetchProducts(currentAdminPage, currentAdminKeyword); // Recarrega a página/busca atual
         } catch (error) {
             alert(`Erro: ${error.message}`);
@@ -190,7 +186,6 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         if (e.target.tagName === 'A' && !e.target.parentElement.classList.contains('disabled')) {
             const page = parseInt(e.target.dataset.page);
-            fetchProducts(page);
             fetchProducts(page, currentAdminKeyword); // Usa a keyword atual para paginar
         }
     });

@@ -24,9 +24,19 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const renderLoggedInLinks = (isAdmin) => {
-        const adminLink = isAdmin ? `<li class="nav-item"><a class="nav-link" href="/admin">Admin</a></li>` : '';
+        const adminLinks = isAdmin ? `
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="adminMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Admin
+                </a>
+                <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="adminMenu">
+                    <li><a class="dropdown-item" href="/dashboard">Dashboard</a></li>
+                    <li><a class="dropdown-item" href="/admin">Gerenciar Produtos</a></li>
+                </ul>
+            </li>
+        ` : '';
         navAuthLinks.innerHTML = `
-            ${adminLink}
+            ${adminLinks}
             <li class="nav-item"><a class="nav-link" href="/profile">Meu Perfil</a></li>
             <li class="nav-item"><a class="nav-link" href="#" id="logout-link" style="cursor: pointer;">Sair</a></li>
         `;

@@ -54,7 +54,7 @@ Este é um projeto de uma mini loja virtual com funcionalidade de carrinho de co
     ```
 
 6.  **Acesse a aplicação:**
-    Abra seu navegador e acesse `http://localhost:3000`.
+    Abra seu navegador e acesse `http://localhost:3000`. Você será redirecionado para a página de produtos.
 
 ## 2. Dependências Principais
 

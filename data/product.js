@@ -33,7 +33,7 @@ const products = [
     name: 'Cadeira Gamer Ergonômica',
     price: 1199.99,
     description: 'Cadeira ergonômica com múltiplos ajustes para garantir o conforto durante horas de uso.',
-    imageUrl: 'https://images.unsplash.com/photo-1598550476439-6847785f56b9?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=600',
+    imageUrl: 'https://i.pinimg.com/736x/ca/ff/59/caff59a32c2fbf450270d8c118b8a749.jpg',
   },
 ];
 

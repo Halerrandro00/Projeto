@@ -2,11 +2,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const productsList = document.getElementById('products-list');
     const cartCountNav = document.getElementById('cart-count');
     const paginationContainer = document.getElementById('pagination');
+    const searchForm = document.getElementById('search-form');
+    const searchBox = document.getElementById('search-box');
+    const sortSelect = document.getElementById('sort-select');
+
+    let currentKeyword = '';
+    let currentSort = '';
 
     // --- FUNÇÕES DE RENDERIZAÇÃO ---
 
     const renderProducts = (products) => {
         productsList.innerHTML = '';
+        if (products.length === 0) {
+            productsList.innerHTML = `<div class="col-12"><p class="text-center text-muted mt-5">Nenhum produto encontrado.</p></div>`;
+            return;
+        }
         products.forEach(product => {
             const productCol = document.createElement('div');
             productCol.className = 'col';
@@ -62,15 +72,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- FUNÇÕES DA API (FETCH) ---
 
-    const fetchProducts = async (page = 1) => {
+    const fetchProducts = async (page = 1, keyword = '', sort = '') => {
         try {
-            const response = await fetch(`/api/products?page=${page}&limit=8`);
+            const response = await fetch(`/api/products?page=${page}&limit=8&keyword=${keyword}&sort=${sort}`);
             if (!response.ok) throw new Error('Falha ao buscar produtos');
             const data = await response.json();
             renderProducts(data.products);
             renderPagination(data.page, data.pages);
         } catch (error) {
             console.error('Erro ao buscar produtos:', error);
+            productsList.innerHTML = `<p class="text-center text-danger">Erro ao carregar produtos.</p>`;
         }
     };
 
@@ -114,11 +125,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    searchForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        currentKeyword = searchBox.value.trim();
+        fetchProducts(1, currentKeyword, currentSort); // Reseta para a página 1 em uma nova busca
+    });
+
+    sortSelect.addEventListener('change', (e) => {
+        currentSort = e.target.value;
+        fetchProducts(1, currentKeyword, currentSort); // Reseta para a página 1 ao mudar a ordenação
+    });
+
     paginationContainer.addEventListener('click', (e) => {
         e.preventDefault();
         if (e.target.tagName === 'A' && !e.target.parentElement.classList.contains('disabled')) {
             const page = parseInt(e.target.dataset.page);
-            fetchProducts(page);
+            fetchProducts(page, currentKeyword, currentSort); // Usa a keyword e ordenação atuais para paginar
         }
     });
 
