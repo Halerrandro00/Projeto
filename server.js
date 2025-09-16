@@ -1,15 +1,24 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
+const dotenv = require('dotenv');
 const apiRoutes = require('./api');
 
+// Carrega as variáveis de ambiente do arquivo .env
+dotenv.config();
+
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 
-// Substitua pela sua string de conexão do MongoDB Atlas ou local
-const MONGO_URI = 'mongodb://localhost:27017/shopping_cart_db';
+const MONGO_URI = process.env.MONGO_URI;
 
-mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+if (!MONGO_URI) {
+  console.error('ERRO: A variável de ambiente MONGO_URI não está definida no arquivo .env');
+  console.error('Por favor, crie um arquivo .env na raiz do projeto e adicione: MONGO_URI=sua_string_de_conexao_mongodb');
+  process.exit(1);
+}
+
+mongoose.connect(MONGO_URI)
   .then(() => console.log('MongoDB connected successfully.'))
   .catch(err => console.error('MongoDB connection error:', err));
 
@@ -38,6 +47,11 @@ app.get('/cart', (req, res) => {
 // Rota para a página de perfil
 app.get('/profile', (req, res) => {
   res.sendFile(path.join(__dirname, 'profile.html'));
+});
+
+// Rota para a página de admin
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
 // Rota para a página de login

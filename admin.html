@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Gerenciar Produtos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/products">Mini Loja NoSQL</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/products">Produtos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/cart">
+                            Carrinho (<span id="cart-count">0</span>)
+                        </a>
+                    </li>
+                    <span id="nav-auth-links"></span>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Gerenciar Produtos</h1>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#productModal"><i class="bi bi-plus-circle-fill me-2"></i>Adicionar Produto</button>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Produto</th>
+                                <th>Preço</th>
+                                <th class="text-end">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-products-list">
+                            <!-- Produtos serão inseridos aqui pelo JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <nav aria-label="Navegação de página de administração" class="mt-4 d-flex justify-content-center">
+            <ul id="admin-pagination" class="pagination">
+                <!-- Links da paginação serão inseridos aqui -->
+            </ul>
+        </nav>
+    </main>
+
+    <!-- Modal para Adicionar/Editar Produto -->
+    <div class="modal fade" id="productModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title" id="productModalLabel">Adicionar Produto</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body">
+                    <form id="product-form">
+                        <input type="hidden" id="product-id">
+                        <div class="mb-3"><label for="product-name" class="form-label">Nome</label><input type="text" class="form-control" id="product-name" required></div>
+                        <div class="mb-3"><label for="product-price" class="form-label">Preço</label><input type="number" class="form-control" id="product-price" step="0.01" required></div>
+                        <div class="mb-3"><label for="product-description" class="form-label">Descrição</label><textarea class="form-control" id="product-description" rows="3"></textarea></div>
+                        <div class="mb-3"><label for="product-imageUrl" class="form-label">URL da Imagem</label><input type="url" class="form-control" id="product-imageUrl" required></div>
+                        <button type="submit" class="btn btn-primary w-100">Salvar Produto</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="auth-nav.js"></script>
+    <script src="admin-app.js"></script>
+</body>
+</html>

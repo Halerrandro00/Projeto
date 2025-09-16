@@ -1,18 +1,18 @@
 {
-  "name": "nosql-shopping-cart",
+  "name": "mini-loja",
   "version": "1.0.0",
-  "description": "A simple shopping cart application using Node.js, Express, and MongoDB.",
-  "main": "server.js",
+  "description": "Um projeto de mini loja com carrinho de compras usando Node.js e MongoDB.",
+  "main": "src/server.js",
   "scripts": {
     "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
     "express": "^4.18.2",
-    "mongoose": "^7.5.0",
-    "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.19.0",
+    "mongoose": "^7.5.0"
   }
 }

@@ -30,7 +30,7 @@ router.post('/login', async (req, res) => {
     try {
         const user = await User.findOne({ email });
         if (user && (await user.matchPassword(password))) {
-            const token = jwt.sign({ id: user._id }, 'SUA_CHAVE_SECRETA_AQUI', { expiresIn: '1h' });
+            const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
             res.json({ token });
         } else {
             res.status(401).json({ message: 'Email ou senha inválidos' });
@@ -46,7 +46,7 @@ const protect = async (req, res, next) => {
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         try {
             token = req.headers.authorization.split(' ')[1];
-            const decoded = jwt.verify(token, 'SUA_CHAVE_SECRETA_AQUI');
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
             req.user = await User.findById(decoded.id).select('-password');
             next();
         } catch (error) {
@@ -55,6 +55,15 @@ const protect = async (req, res, next) => {
     }
     if (!token) {
         return res.status(401).json({ message: 'Não autorizado, sem token' });
+    }
+};
+
+// --- MIDDLEWARE DE ADMIN ---
+const admin = (req, res, next) => {
+    if (req.user && req.user.isAdmin) {
+        next();
+    } else {
+        res.status(401).json({ message: 'Não autorizado como administrador' });
     }
 };
 
@@ -67,23 +76,99 @@ router.get('/profile', protect, (req, res) => {
         _id: req.user._id,
         name: req.user.name,
         email: req.user.email,
+        isAdmin: req.user.isAdmin, // Envia o status de admin
     });
+});
+
+// UPDATE /api/profile - Atualizar informações do perfil
+router.put('/profile', protect, async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+
+        if (user) {
+            user.name = req.body.name || user.name;
+            user.email = req.body.email || user.email;
+
+            const updatedUser = await user.save();
+
+            res.json({
+                _id: updatedUser._id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                isAdmin: updatedUser.isAdmin,
+            });
+        } else {
+            res.status(404).json({ message: 'Usuário não encontrado' });
+        }
+    } catch (error) {
+        // Handle potential duplicate email error
+        if (error.code === 11000) {
+            return res.status(400).json({ message: 'Este email já está em uso.' });
+        }
+        res.status(500).json({ message: 'Erro no servidor' });
+    }
+});
+
+// UPDATE /api/profile/password - Alterar a senha do usuário
+router.put('/profile/password', protect, async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+        return res.status(400).json({ message: 'Por favor, forneça a senha atual e a nova senha.' });
+    }
+
+    try {
+        const user = await User.findById(req.user._id);
+
+        if (user && (await user.matchPassword(currentPassword))) {
+            user.password = newPassword; // O hook 'pre-save' no model irá criptografar
+            await user.save();
+            res.json({ message: 'Senha alterada com sucesso' });
+        } else {
+            res.status(401).json({ message: 'Senha atual incorreta.' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Erro no servidor' });
+    }
 });
 
 // --- ROTAS DE PRODUTOS ---
 
 // READ: Listar todos os produtos
 router.get('/products', async (req, res) => {
+  const pageSize = parseInt(req.query.limit) || 8; // Produtos por página
+  const page = parseInt(req.query.page) || 1;      // Página atual
+
   try {
-    const products = await Product.find();
-    res.json(products);
+    const count = await Product.countDocuments();
+    const products = await Product.find()
+      .limit(pageSize)
+      .skip(pageSize * (page - 1));
+
+    res.json({
+      products,
+      page,
+      pages: Math.ceil(count / pageSize),
+      total: count,
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// CREATE: Adicionar um novo produto (para popular a loja)
-router.post('/products', async (req, res) => {
+// READ ONE: Get a single product by ID
+router.get('/products/:id', async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: 'Produto não encontrado' });
+    res.json(product);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// CREATE: Adicionar um novo produto (Protegido para Admin)
+router.post('/products', protect, admin, async (req, res) => {
     const product = new Product({
         name: req.body.name,
         price: req.body.price,
@@ -97,6 +182,43 @@ router.post('/products', async (req, res) => {
         res.status(400).json({ message: err.message });
     }
 });
+
+// UPDATE: Atualizar um produto (Protegido para Admin)
+router.put('/products/:id', protect, admin, async (req, res) => {
+    const { name, price, description, imageUrl } = req.body;
+    try {
+        const product = await Product.findById(req.params.id);
+        if (product) {
+            product.name = name || product.name;
+            product.price = price || product.price;
+            product.description = description || product.description;
+            product.imageUrl = imageUrl || product.imageUrl;
+
+            const updatedProduct = await product.save();
+            res.json(updatedProduct);
+        } else {
+            res.status(404).json({ message: 'Produto não encontrado' });
+        }
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+});
+
+// DELETE: Remover um produto (Protegido para Admin)
+router.delete('/products/:id', protect, admin, async (req, res) => {
+    try {
+        const result = await Product.deleteOne({ _id: req.params.id });
+
+        if (result.deletedCount === 1) {
+            res.json({ message: 'Produto removido' });
+        } else {
+            res.status(404).json({ message: 'Produto não encontrado' });
+        }
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
 
 // --- ROTAS DO CARRINHO (CRUD COMPLETO) ---
 
@@ -136,7 +258,7 @@ router.post('/cart/items', protect, async (req, res) => {
         cart.items[itemIndex] = productItem;
       } else {
         // Item não existe, adiciona ao carrinho
-        cart.items.push({ productId, name: product.name, quantity, price: product.price });
+        cart.items.push({ productId, name: product.name, quantity, price: product.price, imageUrl: product.imageUrl });
       }
       cart = await cart.save();
       return res.status(200).json(cart);
@@ -144,7 +266,7 @@ router.post('/cart/items', protect, async (req, res) => {
       // Não existe carrinho para o usuário, cria um novo
       const newCart = await Cart.create({
         userId,
-        items: [{ productId, name: product.name, quantity, price: product.price }]
+        items: [{ productId, name: product.name, quantity, price: product.price, imageUrl: product.imageUrl }]
       });
       return res.status(201).json(newCart);
     }

@@ -6,6 +6,8 @@
     <title>Meu Perfil - Mini Loja</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -31,23 +33,86 @@
         </div>
     </nav>
 
-    <main class="container mt-4">
-        <h1>Meu Perfil</h1>
-        <div class="card mt-4">
-            <div class="card-header">
-                Informações do Usuário
-            </div>
-            <div class="card-body">
-                <h5 class="card-title">Nome</h5>
-                <p class="card-text" id="user-name">Carregando...</p>
-                <h5 class="card-title mt-3">Email</h5>
-                <p class="card-text" id="user-email">Carregando...</p>
-                <h5 class="card-title mt-3">Histórico de Compras</h5>
-                <p class="card-text">Em uma aplicação real, o histórico de compras finalizadas apareceria aqui.</p>
-                <a href="/cart" class="btn btn-primary">Ver Carrinho Atual</a>
+    <main class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card profile-card">
+                    <div class="card-body text-center p-4">
+                        <img src="https://i.pravatar.cc/150" alt="Avatar" class="rounded-circle mb-3" width="120" height="120">
+                        <h2 id="user-name" class="card-title mb-1">Carregando...</h2>
+                        <p id="user-email" class="text-muted mb-4">Carregando...</p>
+                    </div>
+                    <div class="card-body p-4">
+                        <h4 class="mb-4">Minhas Informações</h4>
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-person-circle fs-4 text-primary me-3"></i>
+                            <span id="user-name-info" class="fs-5">Carregando...</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-4">
+                            <i class="bi bi-envelope-fill fs-4 text-primary me-3"></i>
+                            <span id="user-email-info" class="fs-5">Carregando...</span>
+                        </div>
+                        <hr>
+                        <h4 class="mb-4 mt-4">Outras Ações</h4>
+                        <div class="d-flex flex-column flex-sm-row gap-2">
+                            <a href="/cart" class="btn btn-primary"><i class="bi bi-cart-fill me-2"></i>Ver Carrinho</a>
+                            <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#profileUpdateModal"><i class="bi bi-pencil-square me-2"></i>Editar Perfil</button>
+                            <a href="#" class="btn btn-outline-secondary"><i class="bi bi-clock-history me-2"></i>Histórico de Compras</a>
+                        </div>
+                        <p class="text-muted mt-3"><small>A funcionalidade de histórico de compras será implementada em breve.</small></p>
+                    </div>
+                </div>
+
+                <div class="card mt-4">
+                    <div class="card-body p-4">
+                        <h4 class="mb-4">Alterar Senha</h4>
+                        <div id="password-success-message" class="alert alert-success d-none" role="alert"></div>
+                        <div id="password-error-message" class="alert alert-danger d-none" role="alert"></div>
+                        <form id="password-change-form">
+                            <div class="mb-3">
+                                <label for="current-password" class="form-label">Senha Atual</label>
+                                <input type="password" class="form-control" id="current-password" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="new-password" class="form-label">Nova Senha</label>
+                                <input type="password" class="form-control" id="new-password" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="confirm-password" class="form-label">Confirmar Nova Senha</label>
+                                <input type="password" class="form-control" id="confirm-password" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Alterar Senha</button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
+
+    <!-- Modal para Editar Perfil -->
+    <div class="modal fade" id="profileUpdateModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Perfil</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="profile-update-form">
+                        <div class="mb-3">
+                            <label for="update-name" class="form-label">Nome</label>
+                            <input type="text" class="form-control" id="update-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="update-email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="update-email" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Salvar Alterações</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="auth-nav.js"></script>
     <script src="profile-app.js"></script>
