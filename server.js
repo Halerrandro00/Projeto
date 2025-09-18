@@ -29,64 +29,32 @@ app.use(express.static(__dirname)); // Servir arquivos estáticos (HTML, CSS, JS
 // Rotas da API
 app.use('/api', apiRoutes);
 
-// Rota principal para servir o frontend
-app.get('/products', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
+// --- ROTAS PARA SERVIR PÁGINAS HTML ---
 
 // Rota raiz redireciona para o login
 app.get('/', (req, res) => {
   res.redirect('/products');
 });
 
-// Rota para a página do carrinho
-app.get('/cart', (req, res) => {
-  res.sendFile(path.join(__dirname, 'cart.html'));
-});
+// Mapeia rotas para seus respectivos arquivos HTML
+const pages = {
+  products: 'index.html', // A rota /products serve o index.html
+  cart: 'cart.html',
+  checkout: 'checkout.html',
+  'order-success': 'order-success.html',
+  profile: 'profile.html',
+  admin: 'admin.html',
+  dashboard: 'dashboard.html',
+  users: 'users.html',
+  orders: 'orders.html',
+  login: 'login.html',
+  register: 'register.html',
+};
 
-// Rota para a página de checkout
-app.get('/checkout', (req, res) => {
-  res.sendFile(path.join(__dirname, 'checkout.html'));
-});
-
-// Rota para a página de sucesso do pedido
-app.get('/order-success', (req, res) => {
-  res.sendFile(path.join(__dirname, 'order-success.html'));
-});
-
-// Rota para a página de perfil
-app.get('/profile', (req, res) => {
-  res.sendFile(path.join(__dirname, 'profile.html'));
-});
-
-// Rota para a página de admin
-app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'admin.html'));
-});
-
-// Rota para a página de dashboard
-app.get('/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dashboard.html'));
-});
-
-// Rota para a página de gerenciamento de usuários (Admin)
-app.get('/users', (req, res) => {
-  res.sendFile(path.join(__dirname, 'users.html'));
-});
-
-// Rota para a página de visualização de todos os pedidos (Admin)
-app.get('/orders', (req, res) => {
-  res.sendFile(path.join(__dirname, 'orders.html'));
-});
-
-// Rota para a página de login
-app.get('/login', (req, res) => {
-  res.sendFile(path.join(__dirname, 'login.html'));
-});
-
-// Rota para a página de registro
-app.get('/register', (req, res) => {
-  res.sendFile(path.join(__dirname, 'register.html'));
+Object.keys(pages).forEach(page => {
+  app.get(`/${page}`, (req, res) => {
+    res.sendFile(path.join(__dirname, pages[page]));
+  });
 });
 
 app.listen(PORT, () => {

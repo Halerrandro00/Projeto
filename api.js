@@ -43,20 +43,19 @@ router.post('/login', async (req, res) => {
 
 // --- MIDDLEWARE DE PROTEÇÃO ---
 const protect = async (req, res, next) => {
-    let token;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         try {
-            token = req.headers.authorization.split(' ')[1];
+            const token = req.headers.authorization.split(' ')[1];
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
             req.user = await User.findById(decoded.id).select('-password');
-            next();
+            return next();
         } catch (error) {
             return res.status(401).json({ message: 'Não autorizado, token falhou' });
         }
     }
-    if (!token) {
-        return res.status(401).json({ message: 'Não autorizado, sem token' });
-    }
+
+    // Se não entrou no if ou se o try/catch falhou, a resposta já foi enviada ou cairá aqui.
+    return res.status(401).json({ message: 'Não autorizado, sem token' });
 };
 
 // --- MIDDLEWARE DE ADMIN ---
@@ -297,9 +296,9 @@ router.put('/products/:id', protect, admin, async (req, res) => {
 // DELETE: Remover um produto (Protegido para Admin)
 router.delete('/products/:id', protect, admin, async (req, res) => {
     try {
-        const result = await Product.deleteOne({ _id: req.params.id });
-
-        if (result.deletedCount === 1) {
+        const product = await Product.findById(req.params.id);
+        if (product) {
+            await Product.deleteOne({ _id: req.params.id });
             res.json({ message: 'Produto removido' });
         } else {
             res.status(404).json({ message: 'Produto não encontrado' });
