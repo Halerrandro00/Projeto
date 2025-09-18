@@ -18,8 +18,11 @@ router.post('/register', async (req, res) => {
         if (userExists) {
             return res.status(400).json({ message: 'Usuário já existe' });
         }
-        const user = await User.create({ name, email, password });
-        res.status(201).json({ _id: user._id, name: user.name, email: user.email });
+        // Criamos uma nova instância do usuário
+        const user = new User({ name, email, password });
+        // Chamamos .save() para disparar o hook de pre-save que criptografa a senha
+        const createdUser = await user.save();
+        res.status(201).json({ _id: createdUser._id, name: createdUser.name, email: createdUser.email });
     } catch (error) {
         res.status(500).json({ message: 'Erro no servidor' });
     }

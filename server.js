@@ -18,6 +18,13 @@ if (!MONGO_URI) {
   process.exit(1);
 }
 
+if (!MONGO_URI.startsWith('mongodb://') && !MONGO_URI.startsWith('mongodb+srv://')) {
+  console.error('ERRO: A variável de ambiente MONGO_URI parece estar em um formato inválido.');
+  console.error('Ela deve começar com "mongodb://" ou "mongodb+srv://".');
+  console.error('Verifique seu arquivo .env.');
+  process.exit(1);
+}
+
 mongoose.connect(MONGO_URI)
   .then(() => console.log('MongoDB connected successfully.'))
   .catch(err => console.error('MongoDB connection error:', err));
