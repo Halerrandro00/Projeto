@@ -25,10 +25,6 @@ if (!MONGO_URI.startsWith('mongodb://') && !MONGO_URI.startsWith('mongodb+srv://
   process.exit(1);
 }
 
-mongoose.connect(MONGO_URI)
-  .then(() => console.log('MongoDB connected successfully.'))
-  .catch(err => console.error('MongoDB connection error:', err));
-
 // Middlewares
 app.use(express.json()); // Para parsear JSON no corpo das requisições
 app.use(express.static(__dirname)); // Servir arquivos estáticos (HTML, CSS, JS)
@@ -64,6 +60,25 @@ Object.keys(pages).forEach(page => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+// Função para iniciar o servidor após a conexão com o banco de dados
+const startServer = async () => {
+  try {
+    await mongoose.connect(MONGO_URI);
+    console.log('MongoDB connected successfully.');
+    app.listen(PORT, () => {
+      console.log(`Server is running on http://localhost:${PORT}`);
+    });
+  } catch (err) {
+    console.error('MongoDB connection error:', err);
+
+    // Adiciona uma dica específica para o erro de autenticação
+    if (err.name === 'MongoServerError' && err.code === 8000) {
+      console.error('\n[DICA] O erro "bad auth : authentication failed" indica que o usuário ou a senha no seu arquivo .env estão incorretos.');
+      console.error('Por favor, verifique se a senha está correta, sem os caracteres "<" e ">", e se o seu IP está liberado no MongoDB Atlas.\n');
+    }
+
+    process.exit(1); // Encerra o processo se a conexão com o DB falhar
+  }
+};
+
+startServer();
